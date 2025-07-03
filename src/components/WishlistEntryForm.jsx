@@ -1,10 +1,11 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import toast, { Toaster } from 'react-hot-toast';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../configuration';
+import NameEntryPopup from './NameEntryPopup';
 
 const schema = yup.object().shape({
   title: yup.string().required('Title is required'),
@@ -14,16 +15,31 @@ const schema = yup.object().shape({
 });
 
 const WishlistEntryForm = () => {
+  const [userName, setUserName] = useState('');
   const { register, handleSubmit, formState: { errors }, reset } = useForm({
     resolver: yupResolver(schema)
   });
+
+  useEffect(() => {
+    const storedName = sessionStorage.getItem('userName');
+    if (storedName) {
+      setUserName(storedName);
+    }
+  }, []);
+
+  const handleNameSubmit = (name) => {
+    setUserName(name);
+  };
 
   const onSubmit = async (data) => {
     try {
       const wishlistData = {
         ...data,
+        addedBy: userName,
         createdAt: new Date(),
-        completed: false
+        completed: false,
+        votes: 0,
+        votedBy: []
       };
 
       await addDoc(collection(db, 'wishlist'), wishlistData);
@@ -37,9 +53,11 @@ const WishlistEntryForm = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-slate-800 p-6 rounded-lg shadow-md">
-      <Toaster position="top-right" />
-      <h2 className="text-2xl font-bold mb-6 text-slate-100">Add Wishlist Item</h2>
+    <>
+      <NameEntryPopup onNameSubmit={handleNameSubmit} />
+      <div className="max-w-md mx-auto bg-slate-800 p-6 rounded-lg shadow-md">
+        <Toaster position="top-right" />
+        <h2 className="text-2xl font-bold mb-6 text-slate-100">Add Wishlist Item</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-slate-300">Title</label>
@@ -98,7 +116,8 @@ const WishlistEntryForm = () => {
           </button>
         </div>
       </form>
-    </div>
+      </div>
+    </>
   );
 };
 

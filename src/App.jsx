@@ -1,43 +1,28 @@
-import React, { useState, useEffect } from 'react';
-import cong from "./configuration"; // Assuming the correct path to your configuration file
-import { getDatabase, ref, onValue } from "firebase/database";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import WishlistNavbar from './components/WishlistNavbar';
 import WishlistEntryForm from './components/WishlistEntryForm';
 import Wishlist from './components/Wishlist';
+import NameEntryPopup from './components/NameEntryPopup';
 
 // Placeholder components for the routes
-const Dashboard = () => <div className="bg-slate-800 p-6 rounded-lg shadow-md text-slate-100">Dashboard Content</div>;
+const Dashboard = () => {
+  const handleNameSubmit = (name) => {
+    // Name is stored in session storage, no need to keep it in state here
+    console.log('User name submitted:', name);
+  };
+
+  return (
+    <>
+      <NameEntryPopup onNameSubmit={handleNameSubmit} />
+      <div className="bg-slate-800 p-6 rounded-lg shadow-md text-slate-100">
+        Dashboard Content
+      </div>
+    </>
+  );
+};
 
 function App() {
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    // Initialize the Firebase database with the provided configuration
-    const database = getDatabase(cong);
-    
-    // Reference to the specific collection in the database
-    const collectionRef = ref(database, "your_collection");
-
-    // Function to fetch data from the database
-    const fetchData = () => {
-      // Listen for changes in the collection
-      onValue(collectionRef, (snapshot) => {
-        const dataItem = snapshot.val();
-
-        // Check if dataItem exists
-        if (dataItem) {
-          // Convert the object values into an array
-          const displayItem = Object.values(dataItem);
-          setData(displayItem);
-        }
-      });
-    };
-
-    // Fetch data when the component mounts
-    fetchData();
-  }, []);
 
   return (
     <Router>
